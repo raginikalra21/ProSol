@@ -5,18 +5,6 @@ import joblib
 import json
 import pandas as pd
 import numpy as np
-<<<<<<< HEAD
-
-st.set_page_config(page_title="Protein Solubility Predictor", layout="centered")
-
-st.title("Protein Solubility Predictor — UESolDS / XGBoost")
-st.write("Paste a protein sequence (single-letter amino acids). The model predicts Soluble vs Insoluble.")
-
-# Load model + feature cols
-MODEL_PATH = "D:/protein_solubility_project/models/xgb2_solubility.joblib"
-FEATURE_COLS_PATH = "D:/protein_solubility_project/models/feature_cols.json"
-
-=======
 from pathlib import Path
 import base64
 import os
@@ -39,7 +27,6 @@ if "seq_input" not in st.session_state:
 # -----------------------------
 # Load model + feature columns (cached)
 # -----------------------------
->>>>>>> 21eb9e1 (Initial commit - Protein Solubility Project)
 @st.cache_resource
 def load_model_and_cols():
     if not Path(MODEL_PATH).exists() or not Path(FEATURE_COLS_PATH).exists():
@@ -49,11 +36,6 @@ def load_model_and_cols():
         cols = json.load(f)
     return model, cols
 
-<<<<<<< HEAD
-model, FEATURE_COLS = load_model_and_cols()
-
-# --- helper functions (same as notebook) ---
-=======
 try:
     model, FEATURE_COLS = load_model_and_cols()
 except Exception as e:
@@ -63,7 +45,6 @@ except Exception as e:
 # -----------------------------
 # Biology helper functions (same as notebook)
 # -----------------------------
->>>>>>> 21eb9e1 (Initial commit - Protein Solubility Project)
 AMINO_ACIDS = list("ACDEFGHIKLMNPQRSTVWY")
 hydropathy = {
     'A': 1.8,  'C': 2.5,  'D': -3.5, 'E': -3.5, 'F': 2.8,
@@ -96,7 +77,6 @@ def compute_physchem(seq):
 def build_feature_vector(seq):
     aa_feats = aa_composition(seq)
     phys = compute_physchem(seq)
-    # Combine in the same order as FEATURE_COLS
     row = []
     for c in FEATURE_COLS:
         if c in aa_feats:
@@ -104,52 +84,9 @@ def build_feature_vector(seq):
         elif c in phys:
             row.append(phys[c])
         else:
-            # unknown column -> zero
             row.append(0.0)
     return np.array(row).reshape(1, -1)
 
-<<<<<<< HEAD
-# --- UI ---
-st.markdown("### Input sequence")
-seq_input = st.text_area("Paste sequence here (single FASTA sequence, no spaces/newlines preferred).", height=150)
-
-col1, col2 = st.columns([1,1])
-with col1:
-    if st.button("Predict"):
-        seq = seq_input.strip().replace("\n", "").replace(" ", "")
-        if len(seq) < 10:
-            st.error("Please paste a valid protein sequence (at least ~10 aa).")
-        else:
-            X = build_feature_vector(seq)
-            proba = model.predict_proba(X)[0][1]  # probability soluble
-            pred = "Soluble" if proba >= 0.5 else "Insoluble"
-            st.subheader(f"Prediction: {pred}")
-            st.write(f"Soluble probability: **{proba:.3f}**")
-            # Show top contributions (approx) by comparing to mean feature vector
-            try:
-                # rough feature effect: show top 6 features where input differs most from training mean
-                # Load training mean from model if saved; otherwise estimate from FEATURE_COLS (fallback zeros)
-                st.markdown("#### Feature snapshot (selected):")
-                fv = pd.Series(X.flatten(), index=FEATURE_COLS)
-                key_feats = fv.sort_values(ascending=False).head(6)
-                st.table(key_feats.to_frame("value"))
-            except Exception:
-                pass
-
-with col2:
-    st.markdown("### Example sequences")
-    st.write("- Try a small soluble enzyme sequence or a long membrane protein to see differences.")
-    st.markdown("### Model info")
-    st.write("- Model: XGBoost trained on UESolDS-derived features.")
-    st.write("- Features: amino-acid composition + seq length + hydrophobicity + aromatic fraction.")
-
-st.markdown("---")
-st.markdown("#### Notes / Caveats")
-st.write("""
-- This model predicts solubility *as observed in E. coli expression experiments* used to build UESolDS.
-- Predictions are probabilistic and should be used as guidance, not definitive truth.
-""")
-=======
 # -----------------------------
 # Sidebar navigation
 # -----------------------------
@@ -276,7 +213,7 @@ if page == "Samples / Download":
         cols[0].code(seq, language="text")
         if cols[1].button(f"Use {name}"):
             st.session_state["seq_input"] = seq
-            st.experimental_rerun()
+            st.rerun()
 
     st.markdown("---")
     st.write("Download model & feature columns (useful for reproducibility).")
@@ -294,4 +231,3 @@ if page == "Samples / Download":
 # -----------------------------
 st.markdown("---")
 st.markdown("Built with ❤️ — UESolDS · XGBoost · Streamlit")
->>>>>>> 21eb9e1 (Initial commit - Protein Solubility Project)
